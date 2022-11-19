@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">recyclerview</string>
+    <string name="confirmation">confirmation</string>
+    <string name="sure_to_delete_item">are you sure to delete this item??</string>
+    <string name="no">no</string>
+    <string name="yes">yes</string>
+    <string name="update_title">update666</string>
+    <string name="nav_menu_books">Books</string>
+    <string name="nav_menu_search">Search</string>
+    <string name="nav_menu_label">Labels</string>
+    <string name="nav_menu_set">Setting</string>
+    <string name="nav_menu_add">Create book label</string>
+    <string name="nav_menu_about">About</string>
+    <string-array name="All">
+
+    </string-array>
+
+
+</resources>
