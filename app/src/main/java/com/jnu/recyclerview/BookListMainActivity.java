@@ -37,6 +37,7 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.jnu.recyclerview.data.BookShelfSaver;
 import com.jnu.recyclerview.data.DataSaver;
 import com.jnu.recyclerview.data.shopItem;
 
@@ -97,11 +98,11 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);//改成这样来隐藏原来的标题栏，而不是改动整体的主题为noactionbar
         setContentView(R.layout.activity_main);
 
         //添加菜单栏
-        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);  //加载Toolbar控件
         getSupportActionBar().setDisplayShowTitleEnabled(false);//隐藏标题
 //        toolbar.setNavigationIcon(R.mipmap.menu);
@@ -131,12 +132,14 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         //spinner 下拉框的数据加载
         spinner = (Spinner) findViewById(R.id.spinner);
         BookShelf=new ArrayList<String>();
-        BookShelf.add("a");
-        BookShelf.add("b");
+        //从数据文件中读取书架数据
+        BookShelfSaver bookShelfSaver=new BookShelfSaver();
+        BookShelf=bookShelfSaver.Load(this);
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, BookShelf);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(dataAdapter);
+        //执行spinner的执行函数
         spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
 
 
@@ -320,6 +323,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         }
     }
 
+    //spinner选项的执行函数：根据书架显示书
     public class CustomOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
         public void onItemSelected(AdapterView<?> parent, View view, int pos,long id) {
 
