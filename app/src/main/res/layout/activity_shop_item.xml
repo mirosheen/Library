@@ -4,65 +4,65 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-<!--    <LinearLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:orientation="vertical">-->
-<!--        <LinearLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:orientation="horizontal">-->
-<!--            <TextView-->
-<!--                android:id="@+id/textViewTitle"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="Title" />-->
+    <!--    <LinearLayout-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:orientation="vertical">-->
+    <!--        <LinearLayout-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:orientation="horizontal">-->
+    <!--            <TextView-->
+    <!--                android:id="@+id/textViewTitle"-->
+    <!--                android:layout_width="wrap_content"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:text="Title" />-->
 
-<!--            <EditText-->
-<!--                android:id="@+id/editText_shop_item_title"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:ems="10"-->
-<!--                android:inputType="textPersonName"-->
-<!--                android:text="Name" />-->
-<!--        </LinearLayout>-->
-<!--        <LinearLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:orientation="horizontal">-->
-<!--            <TextView-->
-<!--                android:id="@+id/textViewIntroduction"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="Introduction" />-->
+    <!--            <EditText-->
+    <!--                android:id="@+id/editText_shop_item_title"-->
+    <!--                android:layout_width="wrap_content"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:ems="10"-->
+    <!--                android:inputType="textPersonName"-->
+    <!--                android:text="Name" />-->
+    <!--        </LinearLayout>-->
+    <!--        <LinearLayout-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:orientation="horizontal">-->
+    <!--            <TextView-->
+    <!--                android:id="@+id/textViewIntroduction"-->
+    <!--                android:layout_width="wrap_content"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:text="Introduction" />-->
 
-<!--            <EditText-->
-<!--                android:id="@+id/editText_shop_item_Introduction"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:ems="10"-->
-<!--                android:inputType="textPersonName"-->
-<!--                android:text="Introduction" />-->
-<!--        </LinearLayout>-->
-<!--        <Button-->
-<!--            android:id="@+id/button_ok"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="ok">-->
-<!--        </Button>-->
-<!--    </LinearLayout>-->
+    <!--            <EditText-->
+    <!--                android:id="@+id/editText_shop_item_Introduction"-->
+    <!--                android:layout_width="wrap_content"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:ems="10"-->
+    <!--                android:inputType="textPersonName"-->
+    <!--                android:text="Introduction" />-->
+    <!--        </LinearLayout>-->
+    <!--        <Button-->
+    <!--            android:id="@+id/button_ok"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:text="ok">-->
+    <!--        </Button>-->
+    <!--    </LinearLayout>-->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_add"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#0080ff">
-<!--        <Button-->
-<!--            android:id="@+id/button_ok"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="save"-->
-<!--            android:layout_gravity="end">-->
-<!--        </Button>-->
+        <!--        <Button-->
+        <!--            android:id="@+id/button_ok"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:text="save"-->
+        <!--            android:layout_gravity="end">-->
+        <!--        </Button>-->
     </androidx.appcompat.widget.Toolbar>
     <LinearLayout
         android:layout_width="match_parent"
@@ -236,6 +236,7 @@
             <Spinner
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:id="@+id/spinner_shop_item_state"
                 android:entries="@array/State">
             </Spinner>
         </LinearLayout>
@@ -251,6 +252,7 @@
                 android:src="@mipmap/ic_launcher" />
             <Spinner
                 android:layout_width="match_parent"
+                android:id="@+id/spinner_shop_item_bookShelf"
                 android:layout_height="50dp">
             </Spinner>
         </LinearLayout>

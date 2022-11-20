@@ -1,27 +1,22 @@
 package com.jnu.recyclerview;
 
-import static com.jnu.recyclerview.R.color.black;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.ColorStateList;
-import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.view.ContextMenu;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -54,7 +49,8 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
     private DrawerLayout mDlMain;
     private NavigationView mNavView;
     private Spinner spinner;
-    private ArrayList<String> BookShelf;
+    public ArrayList<String> BookShelf;
+    private RecyclerView recyclerViewMain;
 
     //设置一个数据传输器，用于输入页面和主页面之间数据的传回,根据类型intent设置的模版，返回结果为result作为参数，然后执行匿名函数
     private ActivityResultLauncher<Intent> addDataLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -64,11 +60,10 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                     Intent intent=result.getData();
                     if(result.getResultCode()==ShopItemActivity.RESULT_CODE_SUCCESS){
                         Bundle bundle=intent.getExtras();
-                        String title=bundle.getString("title");
-                        String introduction=bundle.getString("introduction");
+                        shopItem book= (shopItem) bundle.getSerializable("book");
                         int position=bundle.getInt("position");
                         //在对应的位置添加一个，然后在通知更新器更新
-                        shopItems.add(position,new shopItem(title,introduction,R.drawable.ic_launcher_background));
+                        shopItems.add(position,book);
                         //保存更改到文件中
                         new DataSaver().Save(this,shopItems);
                         mainRecycleViewAdapter.notifyItemInserted(position);
@@ -82,12 +77,10 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                     Intent intent=result.getData();
                     if(result.getResultCode()==ShopItemActivity.RESULT_CODE_SUCCESS){
                         Bundle bundle=intent.getExtras();
-                        String title=bundle.getString("title");
-                        String introduction=bundle.getString("introduction");
+                        shopItem book= (shopItem) bundle.getSerializable("book");
                         int position=bundle.getInt("position");
                         //在对应的位置添加一个，然后在通知更新器更新
-                        shopItems.get(position).setTitle(title);
-                        shopItems.get(position).setAuthor(introduction);
+                        shopItems.set(position,book);
                         //保存更改到文件中
                         new DataSaver().Save(this,shopItems);
                         mainRecycleViewAdapter.notifyItemChanged(position);
@@ -105,12 +98,6 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);  //加载Toolbar控件
         getSupportActionBar().setDisplayShowTitleEnabled(false);//隐藏标题
-//        toolbar.setNavigationIcon(R.mipmap.menu);
-//        ActionBar lActionBar = getSupportActionBar();
-//        if (lActionBar != null) {
-//            lActionBar.setDisplayHomeAsUpEnabled(true);//显示返回按钮
-//            lActionBar.setHomeAsUpIndicator(R.mipmap.menu);//替换返回按钮图标，改为导航按钮
-//        }
 
         //找到抽屉，设置监听器（链接导航栏和侧滑）
         mDlMain = (DrawerLayout) findViewById(R.id.dl_nav_buttom);
@@ -128,17 +115,26 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         mNavView = (NavigationView) findViewById(R.id.nav_view);
         mNavView.setCheckedItem(R.id.item_nav_menu_books);//设置默认点击的是书架，即主页面
         mNavView.setNavigationItemSelectedListener(this);
+        // 去除图标颜色显示规则, 显示为原色
+        mNavView.setItemIconTintList(null);
 
         //spinner 下拉框的数据加载
         spinner = (Spinner) findViewById(R.id.spinner);
         BookShelf=new ArrayList<String>();
+//        BookShelf.add(0,"All");
+//        BookShelf.add("Default Bookshelf");//第一次先写入一些书架
+//        for(int i=0;i<5;i++)
+//            BookShelf.add("Bookshelf"+i);
         //从数据文件中读取书架数据
+
         BookShelfSaver bookShelfSaver=new BookShelfSaver();
+//        bookShelfSaver.Save(this,BookShelf);
         BookShelf=bookShelfSaver.Load(this);
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, BookShelf);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(dataAdapter);
+        spinner.setSelection(0);
         //执行spinner的执行函数
         spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
 
@@ -148,7 +144,10 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.action_search:
-                        Toast.makeText(BookListMainActivity.this, "Search !", Toast.LENGTH_SHORT).show();
+                        //新建一个页面，用于显示数据输入
+                        Intent intent=new Intent(BookListMainActivity.this,SearchActivity.class);
+                        startActivity(intent);
+                        //Toast.makeText(BookListMainActivity.this, "Search !", Toast.LENGTH_SHORT).show();
                         break;
                     case R.id.action_settings:
                         Toast.makeText(BookListMainActivity.this, "Settings !", Toast.LENGTH_SHORT).show();
@@ -159,7 +158,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         });
 
 
-        RecyclerView recyclerViewMain=findViewById(R.id.recycle_view_books);
+        recyclerViewMain=findViewById(R.id.recycle_view_books);
         //设置布局
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -168,6 +167,20 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         //从数据文件中读取数据
         DataSaver dataSaver=new DataSaver();
         shopItems=dataSaver.Load(this);
+//        shopItem book=new shopItem();
+//        book.setUrl("a");
+//        book.setAuthor("ab");
+//        book.setBookShelf("a");
+//        book.setTitle("a");
+//        book.setISBN("a");
+//        book.setLabel("a");
+//        book.setNote("a");
+//        book.setPubDate("a");
+//        book.setPublisher("a");
+//        book.setTranslator("a");
+//        book.setState("b");
+//        book.setResourceId(R.mipmap.ic_launcher);
+//        shopItems.add(0,book);
         //实现悬浮按钮的添加功能
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -175,7 +188,9 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
             public void onClick(View view) {
                 Intent intent=new Intent(BookListMainActivity.this,ShopItemActivity.class);
                 //把index传过去，不然可能在那边的页面的时候这个页面的index数据被销毁了，所以传过去在传回来，不会错误
-                intent.putExtra("position",0);
+                Bundle bundle=new Bundle();
+                bundle.putInt("position",0);
+                intent.putExtras(bundle);
                 //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
                 addDataLauncher.launch(intent);
             }
@@ -184,6 +199,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         //设置数据接收渲染器
         mainRecycleViewAdapter = new MainRecycleViewAdapter(shopItems);
         recyclerViewMain.setAdapter(mainRecycleViewAdapter);
+
     }
 
 //    public void addListenerOnSpinnerItemSelection() {
@@ -207,7 +223,9 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                 //新建一个页面，用于显示数据输入
                 Intent intent=new Intent(this,ShopItemActivity.class);
                 //把index传过去，不然可能在那边的页面的时候这个页面的index数据被销毁了，所以传过去在传回来，不会错误
-                intent.putExtra("position",item.getOrder());
+                Bundle bundle=new Bundle();
+                bundle.putInt("position",item.getOrder());
+                intent.putExtras(bundle);
                 //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
                 addDataLauncher.launch(intent);
 //                //在对应的位置添加一个，然后在通知更新器更新
@@ -238,11 +256,13 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                 break;
             case menu_id_update:
                 Intent intentUpdate=new Intent(this,ShopItemActivity.class);
+                Bundle bundle_=new Bundle();
                 //把这个item的数据都传过去，不然有可能这个页面在那个页面的过程中销毁了
-                intentUpdate.putExtra("position",item.getOrder());
-                intentUpdate.putExtra("title",shopItems.get(item.getOrder()).getTitle());
-                intentUpdate.putExtra("price",shopItems.get(item.getOrder()).getAuthor());
-                addDataLauncher.launch(intentUpdate);
+                bundle_.putInt("position",item.getOrder());
+                shopItem book=new shopItem(shopItems.get(item.getOrder()));
+                bundle_.putSerializable("book",book);
+                intentUpdate.putExtras(bundle_);
+                updateDataLauncher.launch(intentUpdate);
 //                shopItems.get(item.getOrder()).setTitle(getString(R.string.update_title));
 //                mainRecycleViewAdapter.notifyItemChanged(item.getOrder());
                 break;
@@ -253,12 +273,32 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
     //侧滑栏item的执行函数
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.item_nav_menu_books:
+                mDlMain.closeDrawer(GravityCompat.START);
+                break;
+            case R.id.item_nav_menu_search:
+                //新建一个页面，用于显示数据输入
+                Intent intent=new Intent(BookListMainActivity.this,SearchActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.item_nav_menu_add:
+//                mNavView.getMenu().add("ok");
+                break;
+            case R.id.item_nav_menu_set:
+                break;
+            case R.id.item_nav_menu_about:
+                break;
+            default:
+                break;
+        }
+
         return false;
     }
 
     //adapter重写三个方法，并且还得在内部类设置viewholder类
     //三个方法：返回传进来数组的大小，根据view生成一个viewhodler，根据位置获得的内容写入到viewholder中
-    public class MainRecycleViewAdapter extends RecyclerView.Adapter<MainRecycleViewAdapter.ViewHolder> {
+    public static class MainRecycleViewAdapter extends RecyclerView.Adapter<MainRecycleViewAdapter.ViewHolder> {
         //private String[]localDataset;
         private ArrayList<shopItem> localDataset;
         //创建viewholder，针对每一个item生成一个viewholder,相当一个容器，里面的东西自定义
@@ -267,6 +307,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
             private final TextView textViewTitle;
             private final TextView textViewIntroduction;
             private final ImageView imageView;
+            private final TextView textViewPubDate;
 
             public ViewHolder(View view) {
                 super(view);
@@ -274,7 +315,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                 imageView=view.findViewById(R.id.imageView_item_image);
                 textViewTitle = view.findViewById(R.id.textView_item_caption);
                 textViewIntroduction = view.findViewById(R.id.textView_item_introduction);
-
+                textViewPubDate = view.findViewById(R.id.textView_item_pubDate);
                 //设置这个holder的监听事件
                 view.setOnCreateContextMenuListener(this);
             }
@@ -286,6 +327,9 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
             }
             public ImageView getImageView() {
                 return imageView;
+            }
+            public TextView getTextViewPubDate() {
+                return textViewPubDate;
             }
 
             @Override
@@ -313,7 +357,8 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             //holder设置数据
             holder.getTextViewTitle().setText(localDataset.get(position).getTitle());
-            holder.getTextViewIntroduction().setText(localDataset.get(position).getAuthor());
+            holder.getTextViewIntroduction().setText(localDataset.get(position).getAuthor()+" 著，"+localDataset.get(position).getPublisher());
+            holder.getTextViewPubDate().setText(localDataset.get(position).getPubDate());
             holder.getImageView().setImageResource(localDataset.get(position).getResourceId());
         }
 
@@ -326,10 +371,20 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
     //spinner选项的执行函数：根据书架显示书
     public class CustomOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
         public void onItemSelected(AdapterView<?> parent, View view, int pos,long id) {
+            ArrayList<com.jnu.recyclerview.data.shopItem> newShopItems=new ArrayList<>();
+            if(parent.getItemAtPosition(pos).toString().equals("All")){
+                mainRecycleViewAdapter = new MainRecycleViewAdapter(shopItems);
+                recyclerViewMain.setAdapter(mainRecycleViewAdapter);
+                return;
+            }
+            for(int i=0;i<shopItems.size();i++){
 
-            Toast.makeText(parent.getContext(),
-                    "OnItemSelectedListener : " + parent.getItemAtPosition(pos).toString(),
-                    Toast.LENGTH_SHORT).show();
+                if(shopItems.get(i).getBookShelf().equals(parent.getItemAtPosition(pos).toString())){
+                    newShopItems.add(shopItems.get(i));
+                }
+                mainRecycleViewAdapter = new MainRecycleViewAdapter(newShopItems);
+                recyclerViewMain.setAdapter(mainRecycleViewAdapter);
+            }
         }
         @Override
         public void onNothingSelected(AdapterView<?> arg0) {

@@ -13,12 +13,39 @@ public class shopItem implements Serializable {
     private String ISBN;
     private String Note;
     private String Label;
+    private String url;
+    private String state;
+    public shopItem(){
 
+    }
+    public shopItem(shopItem ShopItem) {
+        this.title=ShopItem.getTitle();
+        this.author=ShopItem.getAuthor();
+        this.resourceId=ShopItem.getResourceId();
+        this.BookShelf=ShopItem.getBookShelf();
+        this.Translator=ShopItem.getTranslator();
+        this.Publisher=ShopItem.getPublisher();
+        this.PubDate=ShopItem.getPubDate();
+        this.ISBN=ShopItem.getISBN();
+        this.Note=ShopItem.getNote();
+        this.Label=ShopItem.getLabel();
+        this.url=ShopItem.getUrl();
+        this.state=ShopItem.getState();
+    }
+    public String getState() {
+        return state;
+    }
 
-    public shopItem(String title, String introduction, int resourceId) {
-        this.title = title;
-        this.author = introduction;
-        this.resourceId = resourceId;
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getTranslator() {
@@ -81,7 +108,7 @@ public class shopItem implements Serializable {
         return author;
     }
 
-    public void setAuthor(String introduction) {
+    public void setAuthor(String author) {
         this.author = author;
     }
 
