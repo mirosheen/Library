@@ -44,13 +44,16 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
     public static final int menu_id_delete = 2;
     public static final int menu_id_update = 3;
 
-    private ArrayList<com.jnu.recyclerview.data.shopItem> shopItems;
-    private MainRecycleViewAdapter mainRecycleViewAdapter;
+    private ArrayList<com.jnu.recyclerview.data.shopItem> shopItems;  //主页面的数组
+    ArrayList<com.jnu.recyclerview.data.shopItem> newShopItems;  //spinner页面的数组
+    private MainRecycleViewAdapter mainRecycleViewAdapter;     //主页面的适配器
+    private MainRecycleViewAdapter spinnerRecycleViewAdapter;//spinner页面的适配器
     private DrawerLayout mDlMain;
     private NavigationView mNavView;
     private Spinner spinner;
     public ArrayList<String> BookShelf;
     private RecyclerView recyclerViewMain;
+    public Boolean flag=true;  //用一个flag来判断是在主页面还是在spinner页面，通过点击spinner选项进行更新
 
     //设置一个数据传输器，用于输入页面和主页面之间数据的传回,根据类型intent设置的模版，返回结果为result作为参数，然后执行匿名函数
     private ActivityResultLauncher<Intent> addDataLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -61,9 +64,20 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                     if(result.getResultCode()==ShopItemActivity.RESULT_CODE_SUCCESS){
                         Bundle bundle=intent.getExtras();
                         shopItem book= (shopItem) bundle.getSerializable("book");
-                        int position=bundle.getInt("position");
+                        int position=bundle.getInt("position");   //获取增加的书在主页面的位置
+                        int position_spinner=bundle.getInt("position_spinner");  //获取增加的书在spinner页面的位置
+                        Boolean flag_=bundle.getBoolean("flag");  //判断是否在spinner中
                         //在对应的位置添加一个，然后在通知更新器更新
                         shopItems.add(position,book);
+
+                        if(!flag_){         //设置一个flag来判断是否是spinner回来的，如果是用新的数组更新页面，同时主页面更新；如果不是只更新主页面
+                            //判断新增加的书的书架是否在选中的暑假内，如果不是不增加到新的数组中
+                            if(book.getBookShelf().equals(newShopItems.get(position_spinner).getBookShelf())){
+                                newShopItems.add(position_spinner,book);
+                            }
+                            spinnerRecycleViewAdapter.notifyItemInserted(position_spinner);
+                            recyclerViewMain.setAdapter(spinnerRecycleViewAdapter);
+                        }
                         //保存更改到文件中
                         new DataSaver().Save(this,shopItems);
                         mainRecycleViewAdapter.notifyItemInserted(position);
@@ -79,11 +93,38 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                         Bundle bundle=intent.getExtras();
                         shopItem book= (shopItem) bundle.getSerializable("book");
                         int position=bundle.getInt("position");
+                        int position_spinner=bundle.getInt("position_spinner");
+                        Boolean flag_=bundle.getBoolean("flag");  //判断是否在spinner中
+
+                        if(!flag_){         //设置一个flag来判断是否是spinner回来的，如果是用新的数组更新页面，同时主页面更新；如果不是只更新主页面
+                            //判断更新的书的书架是否在选中的暑假内，如果是更新新数组，如果不是在新数组中删除
+                            if(book.getBookShelf().equals(shopItems.get(position).getBookShelf())){
+                                newShopItems.set(position_spinner,book);
+                            }
+                            else{
+                                newShopItems.remove(position_spinner);
+                            }
+                            spinnerRecycleViewAdapter.notifyItemChanged(position_spinner);
+                            recyclerViewMain.setAdapter(spinnerRecycleViewAdapter);
+                        }
                         //在对应的位置添加一个，然后在通知更新器更新
                         shopItems.set(position,book);
                         //保存更改到文件中
                         new DataSaver().Save(this,shopItems);
                         mainRecycleViewAdapter.notifyItemChanged(position);
+                    }
+                }
+            });
+    private ActivityResultLauncher<Intent> searchDataLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if(null!=result){
+                    //获取数据页面的数据intent
+                    Intent intent=result.getData();
+                    if(result.getResultCode()==SearchActivity.RESULT_CODE_SUCCESS){
+                        //获取search页面的更新，然后同步更新主页面
+                        shopItems=new DataSaver().Load(this);
+                        mainRecycleViewAdapter = new MainRecycleViewAdapter(shopItems);
+                        recyclerViewMain.setAdapter(mainRecycleViewAdapter);
                     }
                 }
             });
@@ -98,6 +139,25 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);  //加载Toolbar控件
         getSupportActionBar().setDisplayShowTitleEnabled(false);//隐藏标题
+
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.action_search:
+                        Intent intent=new Intent(BookListMainActivity.this,SearchActivity.class);
+                        searchDataLauncher.launch(intent);
+                        //Toast.makeText(BookListMainActivity.this, "Search !", Toast.LENGTH_SHORT).show();
+                        break;
+                    case R.id.action_settings:
+                        Toast.makeText(BookListMainActivity.this, "Settings !", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                return true;
+            }
+        });
+
+
 
         //找到抽屉，设置监听器（链接导航栏和侧滑）
         mDlMain = (DrawerLayout) findViewById(R.id.dl_nav_buttom);
@@ -118,6 +178,8 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         // 去除图标颜色显示规则, 显示为原色
         mNavView.setItemIconTintList(null);
 
+
+
         //spinner 下拉框的数据加载
         spinner = (Spinner) findViewById(R.id.spinner);
         BookShelf=new ArrayList<String>();
@@ -126,7 +188,6 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
 //        for(int i=0;i<5;i++)
 //            BookShelf.add("Bookshelf"+i);
         //从数据文件中读取书架数据
-
         BookShelfSaver bookShelfSaver=new BookShelfSaver();
 //        bookShelfSaver.Save(this,BookShelf);
         BookShelf=bookShelfSaver.Load(this);
@@ -139,25 +200,25 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
 
 
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+
+        //实现悬浮按钮的添加功能
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.action_search:
-                        //新建一个页面，用于显示数据输入
-                        Intent intent=new Intent(BookListMainActivity.this,SearchActivity.class);
-                        startActivity(intent);
-                        //Toast.makeText(BookListMainActivity.this, "Search !", Toast.LENGTH_SHORT).show();
-                        break;
-                    case R.id.action_settings:
-                        Toast.makeText(BookListMainActivity.this, "Settings !", Toast.LENGTH_SHORT).show();
-                        break;
-                }
-                return true;
+            public void onClick(View view) {
+                Intent intent=new Intent(BookListMainActivity.this,ShopItemActivity.class);
+                //把index传过去，不然可能在那边的页面的时候这个页面的index数据被销毁了，所以传过去在传回来，不会错误
+                Bundle bundle=new Bundle();
+                bundle.putInt("position",0);
+                bundle.putBoolean("flag",flag);
+                intent.putExtras(bundle);
+                //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
+                addDataLauncher.launch(intent);
             }
         });
 
 
+        //recyclerview主页面的设置
         recyclerViewMain=findViewById(R.id.recycle_view_books);
         //设置布局
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(this);
@@ -181,31 +242,11 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
 //        book.setState("b");
 //        book.setResourceId(R.mipmap.ic_launcher);
 //        shopItems.add(0,book);
-        //实现悬浮按钮的添加功能
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent=new Intent(BookListMainActivity.this,ShopItemActivity.class);
-                //把index传过去，不然可能在那边的页面的时候这个页面的index数据被销毁了，所以传过去在传回来，不会错误
-                Bundle bundle=new Bundle();
-                bundle.putInt("position",0);
-                intent.putExtras(bundle);
-                //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
-                addDataLauncher.launch(intent);
-            }
-        });
-
         //设置数据接收渲染器
         mainRecycleViewAdapter = new MainRecycleViewAdapter(shopItems);
         recyclerViewMain.setAdapter(mainRecycleViewAdapter);
 
     }
-
-//    public void addListenerOnSpinnerItemSelection() {
-//        spinner = (Spinner) findViewById(R.id.spinner);
-//       // spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
-//    }
 
     //设置辛的导航栏
     @Override
@@ -213,6 +254,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
     //item的菜单执行函数
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
@@ -222,15 +264,26 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
             case menu_id_add:
                 //新建一个页面，用于显示数据输入
                 Intent intent=new Intent(this,ShopItemActivity.class);
-                //把index传过去，不然可能在那边的页面的时候这个页面的index数据被销毁了，所以传过去在传回来，不会错误
                 Bundle bundle=new Bundle();
-                bundle.putInt("position",item.getOrder());
+                //把index传过去，不然可能在那边的页面的时候这个页面的index数据被销毁了，所以传过去在传回来，不会错误
+                //主页面和spinner页面需要同步更新，所以需要传两个，一个是在spinner，一个是在主页面的index
+                if(!flag){
+                    bundle.putInt("position_spinner",item.getOrder());
+                    int i;
+                    for(i=0;i<shopItems.size();i++){
+                        if(newShopItems.get(item.getOrder())==shopItems.get(i)){
+                            break;
+                        }
+                    }
+                    bundle.putInt("position",i);
+                }
+                else{
+                    bundle.putInt("position",item.getOrder());
+                }
+                bundle.putBoolean("flag",flag);  //把在哪个页面的标志传过去
                 intent.putExtras(bundle);
                 //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
                 addDataLauncher.launch(intent);
-//                //在对应的位置添加一个，然后在通知更新器更新
-//                shopItems.add(item.getOrder(),new shopItem("added"+item.getOrder(),Math.random()*10,R.drawable.ic_launcher_background));
-//                mainRecycleViewAdapter.notifyItemInserted(item.getOrder());
                 break;
             case menu_id_delete:
                 AlertDialog alertDialog=new AlertDialog.Builder(this)
@@ -245,10 +298,25 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                         .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                shopItems.remove(item.getOrder());
+                                int j;
+                                if(!flag){
+                                    for(j=0;j<shopItems.size();j++){
+                                        if(newShopItems.get(item.getOrder())==shopItems.get(j)){
+                                            break;
+                                        }
+                                    }
+                                    shopItems.remove(j);
+                                    newShopItems.remove(item.getOrder());
+                                    spinnerRecycleViewAdapter.notifyItemRemoved(item.getOrder());
+                                    recyclerViewMain.setAdapter(spinnerRecycleViewAdapter);
+                                }
+                                else{
+                                    shopItems.remove(item.getOrder());
+                                    j=item.getOrder();
+                                }
                                 //保存更改到文件中
                                 new DataSaver().Save(BookListMainActivity.this,shopItems);
-                                mainRecycleViewAdapter.notifyItemRemoved(item.getOrder());
+                                mainRecycleViewAdapter.notifyItemRemoved(j);
                             }
                         })
                         .create();
@@ -257,10 +325,27 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
             case menu_id_update:
                 Intent intentUpdate=new Intent(this,ShopItemActivity.class);
                 Bundle bundle_=new Bundle();
-                //把这个item的数据都传过去，不然有可能这个页面在那个页面的过程中销毁了
-                bundle_.putInt("position",item.getOrder());
-                shopItem book=new shopItem(shopItems.get(item.getOrder()));
+                shopItem book;
+                if(!flag){
+                    bundle_.putInt("position_spinner",item.getOrder());
+                    int i;
+                    for(i=0;i<shopItems.size();i++){
+                        if(newShopItems.get(item.getOrder())==shopItems.get(i)){
+                            break;
+                        }
+                    }
+                    bundle_.putInt("position",i);
+                    //把这个item的数据都传过去，不然有可能这个页面在那个页面的过程中销毁了
+                    //如果spinner内，那么如果按原来的，会选中其他书
+                    book=new shopItem(shopItems.get(i));
+                }
+                else{
+                    bundle_.putInt("position",item.getOrder());
+                    //把这个item的数据都传过去，不然有可能这个页面在那个页面的过程中销毁了
+                    book=new shopItem(shopItems.get(item.getOrder()));
+                }
                 bundle_.putSerializable("book",book);
+                bundle_.putBoolean("flag",flag);
                 intentUpdate.putExtras(bundle_);
                 updateDataLauncher.launch(intentUpdate);
 //                shopItems.get(item.getOrder()).setTitle(getString(R.string.update_title));
@@ -278,9 +363,9 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                 mDlMain.closeDrawer(GravityCompat.START);
                 break;
             case R.id.item_nav_menu_search:
-                //新建一个页面，用于显示数据输入
+                //建一个数据接收器，同步在search页面的更新
                 Intent intent=new Intent(BookListMainActivity.this,SearchActivity.class);
-                startActivity(intent);
+                searchDataLauncher.launch(intent);
                 break;
             case R.id.item_nav_menu_add:
 //                mNavView.getMenu().add("ok");
@@ -371,26 +456,25 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
     //spinner选项的执行函数：根据书架显示书
     public class CustomOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
         public void onItemSelected(AdapterView<?> parent, View view, int pos,long id) {
-            ArrayList<com.jnu.recyclerview.data.shopItem> newShopItems=new ArrayList<>();
             if(parent.getItemAtPosition(pos).toString().equals("All")){
+                flag=true;      //返回主页面一定要通过这里，所以需要转换标志
                 mainRecycleViewAdapter = new MainRecycleViewAdapter(shopItems);
                 recyclerViewMain.setAdapter(mainRecycleViewAdapter);
                 return;
             }
+            newShopItems=new ArrayList<>();  //找到同一个暑假的书
             for(int i=0;i<shopItems.size();i++){
-
                 if(shopItems.get(i).getBookShelf().equals(parent.getItemAtPosition(pos).toString())){
                     newShopItems.add(shopItems.get(i));
                 }
-                mainRecycleViewAdapter = new MainRecycleViewAdapter(newShopItems);
-                recyclerViewMain.setAdapter(mainRecycleViewAdapter);
             }
+            flag=false;   //进入到这里说明在spinner页面，转换标志
+            spinnerRecycleViewAdapter = new MainRecycleViewAdapter(newShopItems);
+            recyclerViewMain.setAdapter(spinnerRecycleViewAdapter);
         }
         @Override
         public void onNothingSelected(AdapterView<?> arg0) {
             // TODO Auto-generated method stub
         }
     }
-
-
 }

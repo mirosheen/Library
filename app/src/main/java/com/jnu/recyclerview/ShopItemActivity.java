@@ -66,6 +66,8 @@ public class ShopItemActivity extends AppCompatActivity {
 
         Bundle bundle=getIntent().getExtras();
         int position= bundle.getInt("position");//获取到传过来的position
+        int position_spinner=bundle.getInt("position_spinner");
+        Boolean flag=bundle.getBoolean("flag");
         book= (shopItem) bundle.getSerializable("book");
         //有可能没有传过来title，比如创建一个新的item的时候
         if(book!=null){
@@ -121,6 +123,8 @@ public class ShopItemActivity extends AppCompatActivity {
 
                         bundle.putSerializable("book",book);
                         bundle.putInt("position",position);
+                        bundle.putInt("position_spinner",position_spinner);
+                        bundle.putBoolean("flag",flag);
                         //把打包的东西放进intent中
                         intent.putExtras(bundle);
                         //设置成功的返回结果:数字和intent
