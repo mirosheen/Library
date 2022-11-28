@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -37,6 +38,7 @@ import com.jnu.recyclerview.data.DataSaver;
 import com.jnu.recyclerview.data.shopItem;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class BookListMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -246,6 +248,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         mainRecycleViewAdapter = new MainRecycleViewAdapter(shopItems);
         recyclerViewMain.setAdapter(mainRecycleViewAdapter);
 
+
     }
 
     //设置辛的导航栏
@@ -368,6 +371,8 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                 searchDataLauncher.launch(intent);
                 break;
             case R.id.item_nav_menu_add:
+                Intent intent_label=new Intent(BookListMainActivity.this,LabelActivity.class);
+                startActivity(intent_label);
 //                mNavView.getMenu().add("ok");
                 break;
             case R.id.item_nav_menu_set:

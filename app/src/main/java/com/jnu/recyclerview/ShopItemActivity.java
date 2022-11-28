@@ -17,6 +17,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.jnu.recyclerview.data.BookShelfSaver;
+import com.jnu.recyclerview.data.LabelSaver;
 import com.jnu.recyclerview.data.shopItem;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class ShopItemActivity extends AppCompatActivity {
     public static final int RESULT_CODE_SUCCESS = 666;
     private shopItem book;
     public ArrayList<String> BookShelfs;
+    public ArrayList<String> labels;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,10 +53,11 @@ public class ShopItemActivity extends AppCompatActivity {
         EditText editTextPubDate=findViewById(R.id.editText_shop_item_PubDate);
         EditText editTextISBN=findViewById(R.id.editText_shop_item_ISBN);
         EditText editTextNote=findViewById(R.id.editText_shop_item_Note);
-        EditText editTextLabel=findViewById(R.id.editText_shop_item_Label);
         EditText editTextUrl=findViewById(R.id.editText_shop_item_Src);
         Spinner spinnerBookShelf=findViewById(R.id.spinner_shop_item_bookShelf);
         Spinner spinnerState=findViewById(R.id.spinner_shop_item_state);
+        Spinner spinnerLabel=findViewById(R.id.spinner_shop_item_Label);
+
 
         BookShelfSaver bookShelfSaver=new BookShelfSaver();
         BookShelfs=bookShelfSaver.Load(this);
@@ -63,6 +66,14 @@ public class ShopItemActivity extends AppCompatActivity {
                 android.R.layout.simple_spinner_item, BookShelfs);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerBookShelf.setAdapter(dataAdapter);
+
+        LabelSaver labelSaver=new LabelSaver();
+        labels=labelSaver.Load(this);
+        int count=Integer.parseInt(labels.get(0));
+        ArrayAdapter<String> dataAdapter_ = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, labels.subList(1,count+1));
+        dataAdapter_.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerLabel.setAdapter(dataAdapter_);
 
         Bundle bundle=getIntent().getExtras();
         int position= bundle.getInt("position");//获取到传过来的position
@@ -90,9 +101,9 @@ public class ShopItemActivity extends AppCompatActivity {
             editTextPubDate.setText(PubDate);
             editTextISBN.setText(ISBN);
             editTextNote.setText(Note);
-            editTextLabel.setText(Label);
             editTextUrl.setText(url);
 
+            spinnerLabel.setSelection(labels.indexOf(Label));
             spinnerBookShelf.setSelection(BookShelfs.indexOf(BookShelf));
             spinnerState.setSelection(state.equals("Reading")?0:1);
         }
@@ -112,12 +123,12 @@ public class ShopItemActivity extends AppCompatActivity {
                         book.setResourceId(R.mipmap.ic_launcher);
                         book.setTitle(editTextTitle.getText().toString());
                         book.setISBN(editTextISBN.getText().toString());
-                        book.setLabel(editTextLabel.getText().toString());
                         book.setNote(editTextNote.getText().toString());
                         book.setPubDate(editTextPubDate.getText().toString());
                         book.setPublisher(editTextPublisher.getText().toString());
                         book.setTranslator(editTextTranslator.getText().toString());
 
+                        book.setLabel(spinnerLabel.getSelectedItem().toString());
                         book.setBookShelf(spinnerBookShelf.getSelectedItem().toString());
                         book.setState(spinnerState.getSelectedItem().toString());
 
