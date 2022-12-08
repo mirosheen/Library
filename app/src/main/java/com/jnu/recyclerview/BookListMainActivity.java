@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -42,6 +44,10 @@ import com.jnu.recyclerview.data.DataSaver;
 import com.jnu.recyclerview.data.HttpDataLoader;
 import com.jnu.recyclerview.data.shopItem;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class BookListMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -60,6 +66,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
     public ArrayList<String> BookShelf;
     private RecyclerView recyclerViewMain;
     public Boolean flag=true;  //用一个flag来判断是在主页面还是在spinner页面，通过点击spinner选项进行更新
+    Bitmap bitmap=null;
 
     //设置一个数据传输器，用于输入页面和主页面之间数据的传回,根据类型intent设置的模版，返回结果为result作为参数，然后执行匿名函数
     private ActivityResultLauncher<Intent> addDataLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -154,7 +161,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                         searchDataLauncher.launch(intent);
                         //Toast.makeText(BookListMainActivity.this, "Search !", Toast.LENGTH_SHORT).show();
                         break;
-                    case R.id.action_settings:
+                    case R.id.action_scan:
                         IntentIntegrator intentIntegrator=new IntentIntegrator(BookListMainActivity.this);
                         intentIntegrator.setPrompt("For flash use volume up key");
                         intentIntegrator.setBeepEnabled(true);
@@ -260,30 +267,28 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
-        IntentResult intentResult=IntentIntegrator.parseActivityResult(requestCode,resultCode,data);
-        if (intentResult.getContents()!=null){
-            //新建一个页面，用于显示数据输入
-            Intent intent=new Intent(this,ShopItemActivity.class);
-            Bundle bundle=new Bundle();
-            bundle.putInt("position_spinner",0);
-            bundle.putInt("position",0);
-            bundle.putBoolean("flag",flag);  //把在哪个页面的标志传过去
+        IntentResult intentResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if( resultCode == RESULT_OK){
+            if (intentResult.getContents() != null) {
+                //新建一个页面，用于显示数据输入
+                Intent intent = new Intent(this, ShopItemActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putInt("position_spinner", 0);
+                bundle.putInt("position", 0);
+                bundle.putBoolean("flag", flag);  //把在哪个页面的标志传过去
 
-            //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
-            AlertDialog.Builder builder=new AlertDialog.Builder(BookListMainActivity.this);
-            builder.setTitle("Result");
-            String message=intentResult.getContents();
-            Log.i("txt",message);
-            builder.setMessage(message);
-            bundle.putString("isbn",message);
-            intent.putExtras(bundle);
-            HttpDataLoader httpDataLoader=new HttpDataLoader();
+                String message = intentResult.getContents();
+                bundle.putString("isbn", message);
+                intent.putExtras(bundle);
             addDataLauncher.launch(intent);
-
-        }else {
-            Toast.makeText(getApplicationContext(),"OOPS... Did not scan anything",Toast.LENGTH_SHORT).show();
+//                startActivity(intent,bundle);
+            } else {
+                Toast.makeText(getApplicationContext(), "OOPS... Did not scan anything", Toast.LENGTH_SHORT).show();
+            }
         }
+
     }
 
     //设置辛的导航栏
@@ -322,7 +327,6 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                 intent.putExtras(bundle);
                 //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
                 addDataLauncher.launch(intent);
-                Log.i("wuwu","wuuw");
                 break;
             case menu_id_delete:
                 AlertDialog alertDialog=new AlertDialog.Builder(this)
@@ -413,8 +417,6 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                 break;
             case R.id.item_nav_menu_set:
                 break;
-            case R.id.item_nav_menu_about:
-                break;
             default:
                 break;
         }
@@ -424,7 +426,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
 
     //adapter重写三个方法，并且还得在内部类设置viewholder类
     //三个方法：返回传进来数组的大小，根据view生成一个viewhodler，根据位置获得的内容写入到viewholder中
-    public static class MainRecycleViewAdapter extends RecyclerView.Adapter<MainRecycleViewAdapter.ViewHolder> {
+    public class MainRecycleViewAdapter extends RecyclerView.Adapter<MainRecycleViewAdapter.ViewHolder> {
         //private String[]localDataset;
         private ArrayList<shopItem> localDataset;
         //创建viewholder，针对每一个item生成一个viewholder,相当一个容器，里面的东西自定义
@@ -483,9 +485,35 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             //holder设置数据
             holder.getTextViewTitle().setText(localDataset.get(position).getTitle());
-            holder.getTextViewIntroduction().setText(localDataset.get(position).getAuthor()+" 著，"+localDataset.get(position).getPublisher());
+            holder.getTextViewIntroduction().setText(localDataset.get(position).getAuthor()+localDataset.get(position).getPublisher());
             holder.getTextViewPubDate().setText(localDataset.get(position).getPubDate());
-            holder.getImageView().setImageResource(localDataset.get(position).getResourceId());
+            String url=localDataset.get(position).getUrl();
+            if(url!=null){
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            URL url_ = new URL(url);
+                            HttpURLConnection conn = (HttpURLConnection) url_.openConnection();
+                            conn.setConnectTimeout(10000);//设置链接时间
+                            conn.setReadTimeout(5000);//设置读取时间
+                            conn.setUseCaches(true);//设置每一次都从网络读取
+                            conn.setRequestMethod("GET");
+                            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK){
+                                InputStream inputStream = conn.getInputStream();
+                                bitmap = BitmapFactory.decodeStream(inputStream);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }).start();
+                holder.getImageView().setImageBitmap(bitmap);
+            }
+            else
+                holder.getImageView().setImageResource(R.mipmap.ic_launcher);
+
         }
 
         @Override

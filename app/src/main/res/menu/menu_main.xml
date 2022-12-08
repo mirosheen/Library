@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".BookListMainActivity">
     <item android:id="@+id/action_search"
         android:title="Search"
-        android:icon="@drawable/search"
+        android:icon="@drawable/searchline"
         app:showAsAction="ifRoom"/>
-    <item android:id="@+id/action_settings"
-        android:title="a"
-        android:orderInCategory="100"
-        app:showAsAction="never"/>
+    <item android:id="@+id/action_scan"
+        android:title="scan"
+        android:icon="@drawable/cameraline"
+        app:showAsAction="ifRoom"/>
 </menu>

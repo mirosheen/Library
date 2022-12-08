@@ -5,7 +5,6 @@ import java.io.Serializable;
 public class shopItem implements Serializable {
     private String title;
     private String author;
-    private int resourceId;
     private String BookShelf;
     private String Publisher;
     private String PubDate;
@@ -20,7 +19,6 @@ public class shopItem implements Serializable {
     public shopItem(shopItem ShopItem) {
         this.title=ShopItem.getTitle();
         this.author=ShopItem.getAuthor();
-        this.resourceId=ShopItem.getResourceId();
         this.BookShelf=ShopItem.getBookShelf();
         this.Publisher=ShopItem.getPublisher();
         this.PubDate=ShopItem.getPubDate();
@@ -100,14 +98,6 @@ public class shopItem implements Serializable {
 
     public void setAuthor(String author) {
         this.author = author;
-    }
-
-    public int getResourceId() {
-        return resourceId;
-    }
-
-    public void setResourceId(int resourceId) {
-        this.resourceId = resourceId;
     }
 
     public String getBookShelf() {

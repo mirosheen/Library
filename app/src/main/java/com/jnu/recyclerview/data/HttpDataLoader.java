@@ -48,16 +48,13 @@ public class HttpDataLoader {
         shopItem shopItem=new shopItem();
         try {
             JSONObject root = new JSONObject(JsonText);
-//            shopItem.setAuthor(root.getString("");
             JSONObject book = root.getJSONObject("data");//获取属性为shops的列表
             shopItem.setTitle(book.getString("title"));
             shopItem.setAuthor(book.getString("author"));
-//            shopItem.setISBN(book.getString("isbn"));
             shopItem.setPublisher(book.getString("publisher"));
             shopItem.setPubDate(book.getString("pubdate"));
             shopItem.setUrl(book.getString("img"));
-
-//            shopItem.setTranslator(book.getString("translator"));
+            shopItem.setNote(book.getString("summary"));
 
         } catch (JSONException e) {
             e.printStackTrace();

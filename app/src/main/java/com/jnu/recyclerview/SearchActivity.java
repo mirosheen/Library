@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -29,6 +31,10 @@ import android.widget.Toast;
 import com.jnu.recyclerview.data.DataSaver;
 import com.jnu.recyclerview.data.shopItem;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class SearchActivity extends AppCompatActivity {
@@ -45,6 +51,7 @@ public class SearchActivity extends AppCompatActivity {
     private MainRecycleViewAdapter mainRecycleViewAdapter;
     private MainRecycleViewAdapter spinnerRecycleViewAdapter;
     int position;
+    Bitmap bitmap;
 
     //设置一个数据传输器，用于输入页面和主页面之间数据的传回,根据类型intent设置的模版，返回结果为result作为参数，然后执行匿名函数
     private ActivityResultLauncher<Intent> addDataLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -310,7 +317,7 @@ public class SearchActivity extends AppCompatActivity {
 
     //adapter重写三个方法，并且还得在内部类设置viewholder类
     //三个方法：返回传进来数组的大小，根据view生成一个viewhodler，根据位置获得的内容写入到viewholder中
-    public static class MainRecycleViewAdapter extends RecyclerView.Adapter<SearchActivity.MainRecycleViewAdapter.ViewHolder> {
+    public class MainRecycleViewAdapter extends RecyclerView.Adapter<SearchActivity.MainRecycleViewAdapter.ViewHolder> {
         //private String[]localDataset;
         private ArrayList<shopItem> localDataset;
         //创建viewholder，针对每一个item生成一个viewholder,相当一个容器，里面的东西自定义
@@ -369,9 +376,35 @@ public class SearchActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull SearchActivity.MainRecycleViewAdapter.ViewHolder holder, int position) {
             //holder设置数据
             holder.getTextViewTitle().setText(localDataset.get(position).getTitle());
-            holder.getTextViewIntroduction().setText(localDataset.get(position).getAuthor()+" 著，"+localDataset.get(position).getPublisher());
+            holder.getTextViewIntroduction().setText(localDataset.get(position).getAuthor()+localDataset.get(position).getPublisher());
             holder.getTextViewPubDate().setText(localDataset.get(position).getPubDate());
-            holder.getImageView().setImageResource(localDataset.get(position).getResourceId());
+            String url=localDataset.get(position).getUrl();
+            if(url!=null){
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            URL url_ = new URL(url);
+                            HttpURLConnection conn = (HttpURLConnection) url_.openConnection();
+                            conn.setConnectTimeout(10000);//设置链接时间
+                            conn.setReadTimeout(5000);//设置读取时间
+                            conn.setUseCaches(true);//设置每一次都从网络读取
+                            conn.setRequestMethod("GET");
+                            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK){
+                                InputStream inputStream = conn.getInputStream();
+                                bitmap = BitmapFactory.decodeStream(inputStream);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }).start();
+                holder.getImageView().setImageBitmap(bitmap);
+            }
+            else
+                holder.getImageView().setImageResource(R.mipmap.ic_launcher);
+
         }
 
         @Override

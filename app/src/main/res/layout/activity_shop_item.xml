@@ -64,21 +64,22 @@
         <!--            android:layout_gravity="end">-->
         <!--        </Button>-->
     </androidx.appcompat.widget.Toolbar>
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="240dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/imageView_image"></ImageView>
+            android:id="@+id/imageView_image"
+            android:layout_width="130dp"
+            android:layout_height="170dp"></ImageView>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="240dp"
-            android:orientation="vertical"
-            android:layout_gravity="center">
+            android:layout_width="282dp"
+            android:layout_height="210dp"
+            android:layout_gravity="center"
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -95,11 +96,12 @@
                 <EditText
                     android:id="@+id/editText_shop_item_title"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
+                    android:layout_height="50dp"
                     android:layout_gravity="center"
                     android:ems="10"
                     android:inputType="textPersonName"
-                    android:text="Name" />
+                    android:text="Name"
+                    android:textSize="15sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -111,18 +113,20 @@
                     android:id="@+id/textViewAuthor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Author"
-                    android:layout_gravity="center"/>
+                    android:layout_gravity="center"
+                    android:text="Author" />
 
                 <EditText
                     android:id="@+id/editText_shop_item_Author"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:ems="10"
+                    android:layout_height="50dp"
                     android:layout_gravity="center"
+                    android:ems="10"
                     android:inputType="textPersonName"
-                    android:text="Author" />
+                    android:text="Author"
+                    android:textSize="15sp" />
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
@@ -138,11 +142,12 @@
                 <EditText
                     android:id="@+id/editText_shop_item_Publisher"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:ems="10"
+                    android:layout_height="50dp"
                     android:layout_gravity="center"
+                    android:ems="10"
                     android:inputType="textPersonName"
-                    android:text="Publisher" />
+                    android:text="Publisher"
+                    android:textSize="15sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -160,11 +165,12 @@
                 <EditText
                     android:id="@+id/editText_shop_item_PubDate"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
+                    android:layout_height="50dp"
                     android:layout_gravity="center"
                     android:ems="10"
                     android:inputType="textPersonName"
-                    android:text="PubDate" />
+                    android:text="PubDate"
+                    android:textSize="15sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -182,17 +188,18 @@
                 <EditText
                     android:id="@+id/editText_shop_item_ISBN"
                     android:layout_width="wrap_content"
-                    android:layout_height="40dp"
+                    android:layout_height="50dp"
                     android:layout_gravity="center"
-
                     android:inputType="textPersonName"
-                    android:text="ISBN" />
+                    android:text="ISBN"
+                    android:textSize="15sp" />
 
                 <Button
                     android:id="@+id/button_ISBN"
-                    android:layout_width="wrap_content"
+                    android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"
+                    android:padding="5dp"
                     android:text="获取">
 
                 </Button>
@@ -202,7 +209,7 @@
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:text="Detail"></TextView>
 
     <LinearLayout
@@ -211,93 +218,99 @@
         android:orientation="vertical">
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:orientation="horizontal">
             <ImageView
                 android:id="@+id/imageViewState"
                 android:layout_width="50dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                android:src="@mipmap/ic_launcher" />
+                android:src="@drawable/state" />
             <Spinner
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="40dp"
                 android:id="@+id/spinner_shop_item_state"
                 android:entries="@array/State">
             </Spinner>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:orientation="horizontal">
             <ImageView
                 android:id="@+id/imageViewBookShelf"
                 android:layout_width="50dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                android:src="@mipmap/ic_launcher" />
+                android:src="@drawable/bookshelf" />
             <Spinner
                 android:layout_width="match_parent"
                 android:id="@+id/spinner_shop_item_bookShelf"
-                android:layout_height="50dp">
+                android:layout_height="40dp">
             </Spinner>
         </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <ImageView
-                android:id="@+id/imageViewNote"
-                android:layout_width="50dp"
-                android:layout_height="20dp"
-                android:src="@mipmap/ic_launcher"
-                android:layout_gravity="center"/>
 
-            <EditText
-                android:id="@+id/editText_shop_item_Note"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:inputType="textPersonName"
-                android:text="Note" />
-        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:orientation="horizontal">
             <ImageView
                 android:id="@+id/imageViewLabel"
                 android:layout_width="50dp"
                 android:layout_height="20dp"
-                android:src="@mipmap/ic_launcher"
+                android:src="@drawable/bookmark"
                 android:layout_gravity="center"/>
             <Spinner
                 android:layout_width="match_parent"
                 android:id="@+id/spinner_shop_item_Label"
-                android:layout_height="50dp">
+                android:layout_height="40dp">
             </Spinner>
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="124dp"
             android:orientation="horizontal">
+
             <ImageView
-                android:id="@+id/imageViewSrc"
+                android:id="@+id/imageViewNote"
                 android:layout_width="50dp"
                 android:layout_height="20dp"
-                android:src="@mipmap/ic_launcher"
-                android:layout_gravity="center"/>
 
+                android:src="@drawable/note" />
 
             <EditText
-                android:id="@+id/editText_shop_item_Src"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:inputType="textPersonName"
-                android:text="Src" />
+                android:id="@+id/editText_shop_item_Note"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:ems="1000"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:scrollbars="vertical"
+                android:text="Note"
+                android:textSize="13sp" />
         </LinearLayout>
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal">-->
+<!--            <ImageView-->
+<!--                android:id="@+id/imageViewSrc"-->
+<!--                android:layout_width="50dp"-->
+<!--                android:layout_height="20dp"-->
+<!--                android:src="@mipmap/ic_launcher"-->
+<!--                android:layout_gravity="center"/>-->
+
+
+<!--            <EditText-->
+<!--                android:id="@+id/editText_shop_item_Src"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:ems="10"-->
+<!--                android:inputType="textPersonName"-->
+<!--                android:text="Src" />-->
+<!--        </LinearLayout>-->
 
     </LinearLayout>
 

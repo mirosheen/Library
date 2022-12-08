@@ -1,9 +1,11 @@
 package com.jnu.recyclerview;
 
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -39,6 +41,7 @@ public class ShopItemActivity extends AppCompatActivity {
     public ArrayList<String> BookShelfs;
     public ArrayList<String> labels;
     String ISBN=null;
+    String url=null;
     Bitmap bitmap=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +69,6 @@ public class ShopItemActivity extends AppCompatActivity {
         EditText editTextPubDate=findViewById(R.id.editText_shop_item_PubDate);
         EditText editTextISBN=findViewById(R.id.editText_shop_item_ISBN);
         EditText editTextNote=findViewById(R.id.editText_shop_item_Note);
-        EditText editTextUrl=findViewById(R.id.editText_shop_item_Src);
         Spinner spinnerBookShelf=findViewById(R.id.spinner_shop_item_bookShelf);
         Spinner spinnerState=findViewById(R.id.spinner_shop_item_state);
         Spinner spinnerLabel=findViewById(R.id.spinner_shop_item_Label);
@@ -93,22 +95,17 @@ public class ShopItemActivity extends AppCompatActivity {
         int position_spinner=bundle.getInt("position_spinner");
         Boolean flag=bundle.getBoolean("flag");
         book= (shopItem) bundle.getSerializable("book");
-//        Double tmp=bundle.getDouble("isbn");
-//        ISBN=tmp.toString();
 
         //有可能没有传过来title，比如创建一个新的item的时候
         if(book!=null ){
-            Log.i("test","2");
             String author=book.getAuthor();
             String title=book.getTitle();
-//            String Translator=book.getTranslator();
             String Publisher=book.getPublisher();
             String PubDate=book.getPubDate();
             ISBN=book.getISBN();
             String Note=book.getNote();
             String Label=book.getLabel();
-            String url=book.getUrl();
-            int resourceId=book.getResourceId();
+            url=book.getUrl();
             String BookShelf=book.getBookShelf();
             String state=book.getState();
             editTextTitle.setText(title);
@@ -117,21 +114,50 @@ public class ShopItemActivity extends AppCompatActivity {
             editTextPubDate.setText(PubDate);
             editTextISBN.setText(ISBN);
             editTextNote.setText(Note);
-            editTextUrl.setText(url);
+//            editTextUrl.setText(url);
+            if(url!=null){
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            URL url_ = new URL(url);
+                            HttpURLConnection conn = (HttpURLConnection) url_.openConnection();
+                            conn.setConnectTimeout(10000);//设置链接时间
+                            conn.setReadTimeout(5000);//设置读取时间
+                            conn.setUseCaches(true);//设置每一次都从网络读取
+                            conn.setRequestMethod("GET");
+                            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK){
+                                InputStream inputStream = conn.getInputStream();
+                                bitmap = BitmapFactory.decodeStream(inputStream);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        //更新界面的ui不能放在子线程会崩溃，需要切换到主线程进行更新
+                        ShopItemActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                imageView.setImageBitmap(bitmap);
+                            }
+                        });
+                    }
+                }).start();
+            }
+            else
+                imageView.setImageResource(R.mipmap.ic_launcher);
+
 
             spinnerLabel.setSelection(labels.indexOf(Label));
             spinnerBookShelf.setSelection(BookShelfs.indexOf(BookShelf));
             spinnerState.setSelection(state.equals("Reading")?0:1);
         }
-//        else if(book.getISBN()!=null){
-//            Log.i("text","1");
-//        }
         else{
             ISBN=bundle.getString("isbn");
             editTextISBN.setText(ISBN);
-//            Log.i("txt0",ISBN);
 
             book=(shopItem) new shopItem();
+//            imageView.setImageResource(R.mipmap.ic_launcher);
         }
 
         toolbar_add.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -142,14 +168,14 @@ public class ShopItemActivity extends AppCompatActivity {
                         Intent intent=new Intent();
                         //打包数据
                         Bundle bundle=new Bundle();
-                        book.setUrl(editTextUrl.getText().toString());
                         book.setAuthor(editTextAuthor.getText().toString());
-                        book.setResourceId(R.mipmap.ic_launcher);
                         book.setTitle(editTextTitle.getText().toString());
                         book.setISBN(editTextISBN.getText().toString());
                         book.setNote(editTextNote.getText().toString());
                         book.setPubDate(editTextPubDate.getText().toString());
                         book.setPublisher(editTextPublisher.getText().toString());
+
+                        book.setUrl(url);
 
                         book.setLabel(spinnerLabel.getSelectedItem().toString());
                         book.setBookShelf(spinnerBookShelf.getSelectedItem().toString());
@@ -176,8 +202,8 @@ public class ShopItemActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ISBN=editTextISBN.getText().toString();
                 if(ISBN!=null){
-
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -188,11 +214,13 @@ public class ShopItemActivity extends AppCompatActivity {
                             String title=book.getTitle();
                             String Publisher=book.getPublisher();
                             String PubDate=book.getPubDate();
-                            String url=book.getUrl();
+                            String Note=book.getNote();
+                            url=book.getUrl();
                             editTextTitle.setText(title);
                             editTextAuthor.setText(author);
                             editTextPublisher.setText(Publisher);
                             editTextPubDate.setText(PubDate);
+                            editTextNote.setText(Note);
 
                             try {
                                 URL url_ = new URL(url);
@@ -206,7 +234,6 @@ public class ShopItemActivity extends AppCompatActivity {
                                     bitmap = BitmapFactory.decodeStream(inputStream);
                                 }
                             } catch (IOException e) {
-                                // TODO Auto-generated catch block
                                 e.printStackTrace();
                             }
 
@@ -223,6 +250,7 @@ public class ShopItemActivity extends AppCompatActivity {
 
             }
         });
+
 
 
     }
