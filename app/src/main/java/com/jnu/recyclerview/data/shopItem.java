@@ -7,7 +7,6 @@ public class shopItem implements Serializable {
     private String author;
     private int resourceId;
     private String BookShelf;
-    private String Translator;
     private String Publisher;
     private String PubDate;
     private String ISBN;
@@ -23,7 +22,6 @@ public class shopItem implements Serializable {
         this.author=ShopItem.getAuthor();
         this.resourceId=ShopItem.getResourceId();
         this.BookShelf=ShopItem.getBookShelf();
-        this.Translator=ShopItem.getTranslator();
         this.Publisher=ShopItem.getPublisher();
         this.PubDate=ShopItem.getPubDate();
         this.ISBN=ShopItem.getISBN();
@@ -46,14 +44,6 @@ public class shopItem implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public String getTranslator() {
-        return Translator;
-    }
-
-    public void setTranslator(String translator) {
-        Translator = translator;
     }
 
     public String getPublisher() {

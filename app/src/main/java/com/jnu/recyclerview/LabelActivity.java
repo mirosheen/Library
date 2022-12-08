@@ -34,7 +34,7 @@ public class LabelActivity extends AppCompatActivity {
     public ArrayList<String> otherLabels=new ArrayList<>();
     int labelsCount;
     // 是否为编辑模式
-    private boolean isEditMode;
+//    private boolean isEditMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,20 +44,46 @@ public class LabelActivity extends AppCompatActivity {
         recyclerViewLabel = findViewById(R.id.recycle_view_myLabels);
         //设置布局
         recyclerViewLabel.setLayoutManager(new GridLayoutManager(LabelActivity.this,4));
-//        labels=new ArrayList<>();
-//        labels.add("名著");
-//        labels.add("编程");
-//        labels.add("科幻");
-//        labels.add("漫画");
-//        labels.add("历史");
-//        labels.add("中国");
+        all=new ArrayList<>();
+        all.add("名著");
+        all.add("编程");
+        all.add("科幻");
+        all.add("漫画");
+        all.add("历史");
+        all.add("中国");
         LabelSaver labelSaver=new LabelSaver();
-//        labelSaver.Save(LabelActivity.this,labels);
-//        labels.remove(0);
+        all.add(0,""+6);
+
 
         //文件第一个为labels的数量，根据数量加载labels和其他labels
-        all=new ArrayList<>();
+//        all=new ArrayList<>();
+        all.add("小说");
+        all.add("日本");
+        all.add("外国文学");
+        all.add("文学");
+        all.add("心理学");
+        all.add("随笔");
+        all.add("哲学");
+        all.add("绘本");
+        all.add("中国文学");
+        all.add("推理");
+        all.add("美国");
+        all.add("爱情");
+        all.add("经典");
+        all.add("传记");
+        all.add("日本文学");
+        all.add("散文");
+        all.add("文化");
+        all.add("青春");
+        all.add("旅行");
+        all.add("社会学");
+        all.add("英国");
+        all.add("言情");
+        all.add("科普");
+        all.add("生活");
+        labelSaver.Save(LabelActivity.this,all);
 
+        all=new ArrayList<>();
         all=labelSaver.Load(LabelActivity.this);
 //        all.remove(0);
 //        labelSaver.Save(LabelActivity.this,all);

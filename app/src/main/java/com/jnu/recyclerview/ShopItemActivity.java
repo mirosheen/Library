@@ -5,7 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,14 +16,21 @@ import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.jnu.recyclerview.data.BookShelfSaver;
+import com.jnu.recyclerview.data.HttpDataLoader;
 import com.jnu.recyclerview.data.LabelSaver;
 import com.jnu.recyclerview.data.shopItem;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ShopItemActivity extends AppCompatActivity {
 
@@ -28,6 +38,8 @@ public class ShopItemActivity extends AppCompatActivity {
     private shopItem book;
     public ArrayList<String> BookShelfs;
     public ArrayList<String> labels;
+    String ISBN=null;
+    Bitmap bitmap=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,9 +58,10 @@ public class ShopItemActivity extends AppCompatActivity {
         }
 
         //设置按钮的监听执行函数：把输入栏的数据打包bundle，然后设置进intent中，然后intent回传给主页面
+        ImageView imageView=findViewById(R.id.imageView_image);
+
         EditText editTextTitle=findViewById(R.id.editText_shop_item_title);
         EditText editTextAuthor=findViewById(R.id.editText_shop_item_Author);
-        EditText editTextTranslator=findViewById(R.id.editText_shop_item_Translator);
         EditText editTextPublisher=findViewById(R.id.editText_shop_item_Publisher);
         EditText editTextPubDate=findViewById(R.id.editText_shop_item_PubDate);
         EditText editTextISBN=findViewById(R.id.editText_shop_item_ISBN);
@@ -80,14 +93,18 @@ public class ShopItemActivity extends AppCompatActivity {
         int position_spinner=bundle.getInt("position_spinner");
         Boolean flag=bundle.getBoolean("flag");
         book= (shopItem) bundle.getSerializable("book");
+//        Double tmp=bundle.getDouble("isbn");
+//        ISBN=tmp.toString();
+
         //有可能没有传过来title，比如创建一个新的item的时候
-        if(book!=null){
+        if(book!=null ){
+            Log.i("test","2");
             String author=book.getAuthor();
             String title=book.getTitle();
-            String Translator=book.getTranslator();
+//            String Translator=book.getTranslator();
             String Publisher=book.getPublisher();
             String PubDate=book.getPubDate();
-            String ISBN=book.getISBN();
+            ISBN=book.getISBN();
             String Note=book.getNote();
             String Label=book.getLabel();
             String url=book.getUrl();
@@ -96,7 +113,6 @@ public class ShopItemActivity extends AppCompatActivity {
             String state=book.getState();
             editTextTitle.setText(title);
             editTextAuthor.setText(author);
-            editTextTranslator.setText(Translator);
             editTextPublisher.setText(Publisher);
             editTextPubDate.setText(PubDate);
             editTextISBN.setText(ISBN);
@@ -107,9 +123,17 @@ public class ShopItemActivity extends AppCompatActivity {
             spinnerBookShelf.setSelection(BookShelfs.indexOf(BookShelf));
             spinnerState.setSelection(state.equals("Reading")?0:1);
         }
+//        else if(book.getISBN()!=null){
+//            Log.i("text","1");
+//        }
         else{
+            ISBN=bundle.getString("isbn");
+            editTextISBN.setText(ISBN);
+//            Log.i("txt0",ISBN);
+
             book=(shopItem) new shopItem();
         }
+
         toolbar_add.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -126,7 +150,6 @@ public class ShopItemActivity extends AppCompatActivity {
                         book.setNote(editTextNote.getText().toString());
                         book.setPubDate(editTextPubDate.getText().toString());
                         book.setPublisher(editTextPublisher.getText().toString());
-                        book.setTranslator(editTextTranslator.getText().toString());
 
                         book.setLabel(spinnerLabel.getSelectedItem().toString());
                         book.setBookShelf(spinnerBookShelf.getSelectedItem().toString());
@@ -140,6 +163,7 @@ public class ShopItemActivity extends AppCompatActivity {
                         intent.putExtras(bundle);
                         //设置成功的返回结果:数字和intent
                         setResult(RESULT_CODE_SUCCESS,intent);
+
                         //关闭页面
                         ShopItemActivity.this.finish();
                         break;
@@ -147,6 +171,59 @@ public class ShopItemActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        Button button=this.findViewById(R.id.button_ISBN);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(ISBN!=null){
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            HttpDataLoader httpDataLoader=new HttpDataLoader();
+                            String html=httpDataLoader.getHtml(ISBN);
+                            book=httpDataLoader.ParseJsonData(html);
+                            String author=book.getAuthor();
+                            String title=book.getTitle();
+                            String Publisher=book.getPublisher();
+                            String PubDate=book.getPubDate();
+                            String url=book.getUrl();
+                            editTextTitle.setText(title);
+                            editTextAuthor.setText(author);
+                            editTextPublisher.setText(Publisher);
+                            editTextPubDate.setText(PubDate);
+
+                            try {
+                                URL url_ = new URL(url);
+                                HttpURLConnection conn = (HttpURLConnection) url_.openConnection();
+                                conn.setConnectTimeout(10000);//设置链接时间
+                                conn.setReadTimeout(5000);//设置读取时间
+                                conn.setUseCaches(true);//设置每一次都从网络读取
+                                conn.setRequestMethod("GET");
+                                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK){
+                                    InputStream inputStream = conn.getInputStream();
+                                    bitmap = BitmapFactory.decodeStream(inputStream);
+                                }
+                            } catch (IOException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+
+                            //更新界面的ui不能放在子线程会崩溃，需要切换到主线程进行更新
+                            ShopItemActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    imageView.setImageBitmap(bitmap);
+                                }
+                            });
+                        }
+                    }).start();
+                }
+
+            }
+        });
+
 
     }
     //设置辛的导航栏
@@ -158,11 +235,9 @@ public class ShopItemActivity extends AppCompatActivity {
     //实现返回按钮返回主页面
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         if(item.getItemId()==android.R.id.home){
             finish();
         }
-
         return super.onOptionsItemSelected(item);
     }
 }

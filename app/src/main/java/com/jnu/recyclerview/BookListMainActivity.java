@@ -4,19 +4,20 @@ package com.jnu.recyclerview;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,12 +34,15 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.jnu.recyclerview.data.BookShelfSaver;
+import com.jnu.recyclerview.data.Capture;
 import com.jnu.recyclerview.data.DataSaver;
+import com.jnu.recyclerview.data.HttpDataLoader;
 import com.jnu.recyclerview.data.shopItem;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class BookListMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -83,6 +87,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                         //保存更改到文件中
                         new DataSaver().Save(this,shopItems);
                         mainRecycleViewAdapter.notifyItemInserted(position);
+                        Log.i("wuwu","wuuw");
                     }
                 }
             });
@@ -120,8 +125,6 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
     private ActivityResultLauncher<Intent> searchDataLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if(null!=result){
-                    //获取数据页面的数据intent
-                    Intent intent=result.getData();
                     if(result.getResultCode()==SearchActivity.RESULT_CODE_SUCCESS){
                         //获取search页面的更新，然后同步更新主页面
                         shopItems=new DataSaver().Load(this);
@@ -152,7 +155,12 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                         //Toast.makeText(BookListMainActivity.this, "Search !", Toast.LENGTH_SHORT).show();
                         break;
                     case R.id.action_settings:
-                        Toast.makeText(BookListMainActivity.this, "Settings !", Toast.LENGTH_SHORT).show();
+                        IntentIntegrator intentIntegrator=new IntentIntegrator(BookListMainActivity.this);
+                        intentIntegrator.setPrompt("For flash use volume up key");
+                        intentIntegrator.setBeepEnabled(true);
+                        intentIntegrator.setOrientationLocked(true);
+                        intentIntegrator.setCaptureActivity(Capture.class);
+                        intentIntegrator.initiateScan();
                         break;
                 }
                 return true;
@@ -185,13 +193,13 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         //spinner 下拉框的数据加载
         spinner = (Spinner) findViewById(R.id.spinner);
         BookShelf=new ArrayList<String>();
-//        BookShelf.add(0,"All");
-//        BookShelf.add("Default Bookshelf");//第一次先写入一些书架
-//        for(int i=0;i<5;i++)
-//            BookShelf.add("Bookshelf"+i);
+        BookShelf.add(0,"All");
+        BookShelf.add("Default Bookshelf");//第一次先写入一些书架
+        for(int i=0;i<5;i++)
+            BookShelf.add("Bookshelf"+i);
         //从数据文件中读取书架数据
         BookShelfSaver bookShelfSaver=new BookShelfSaver();
-//        bookShelfSaver.Save(this,BookShelf);
+        bookShelfSaver.Save(this,BookShelf);
         BookShelf=bookShelfSaver.Load(this);
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, BookShelf);
@@ -212,6 +220,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                 //把index传过去，不然可能在那边的页面的时候这个页面的index数据被销毁了，所以传过去在传回来，不会错误
                 Bundle bundle=new Bundle();
                 bundle.putInt("position",0);
+                bundle.putInt("position_spinner",0);
                 bundle.putBoolean("flag",flag);
                 intent.putExtras(bundle);
                 //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
@@ -247,8 +256,34 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
         //设置数据接收渲染器
         mainRecycleViewAdapter = new MainRecycleViewAdapter(shopItems);
         recyclerViewMain.setAdapter(mainRecycleViewAdapter);
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        IntentResult intentResult=IntentIntegrator.parseActivityResult(requestCode,resultCode,data);
+        if (intentResult.getContents()!=null){
+            //新建一个页面，用于显示数据输入
+            Intent intent=new Intent(this,ShopItemActivity.class);
+            Bundle bundle=new Bundle();
+            bundle.putInt("position_spinner",0);
+            bundle.putInt("position",0);
+            bundle.putBoolean("flag",flag);  //把在哪个页面的标志传过去
 
+            //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
+            AlertDialog.Builder builder=new AlertDialog.Builder(BookListMainActivity.this);
+            builder.setTitle("Result");
+            String message=intentResult.getContents();
+            Log.i("txt",message);
+            builder.setMessage(message);
+            bundle.putString("isbn",message);
+            intent.putExtras(bundle);
+            HttpDataLoader httpDataLoader=new HttpDataLoader();
+            addDataLauncher.launch(intent);
+
+        }else {
+            Toast.makeText(getApplicationContext(),"OOPS... Did not scan anything",Toast.LENGTH_SHORT).show();
+        }
     }
 
     //设置辛的导航栏
@@ -287,6 +322,7 @@ public class BookListMainActivity extends AppCompatActivity implements Navigatio
                 intent.putExtras(bundle);
                 //可以简单的显示这个页面，这里把这个页面的结果设置到数据传输器：显示并且接收页面传回来的结果
                 addDataLauncher.launch(intent);
+                Log.i("wuwu","wuuw");
                 break;
             case menu_id_delete:
                 AlertDialog alertDialog=new AlertDialog.Builder(this)
